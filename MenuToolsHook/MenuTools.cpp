@@ -3,6 +3,10 @@
 
 #include "MenuCommon/TrayIcon.h"
 
+#ifndef PID_ILLEGAL
+#define PID_ILLEGAL	0xffffffff
+#endif /* <!PID_ILLEGAL> */
+
 // Window information
 LONG wndOldWidth = -1;
 LONG wndOldHeight = -1;
@@ -52,6 +56,15 @@ BOOL MenuTools::Install(HWND hWnd)
 
 	}
 
+	if (!IsMenuItem(hMenuSystem, MT_MENU_PIDINFO))
+	{
+		DWORD pid = PID_ILLEGAL;
+		WCHAR pid_info[32] = { 0 };
+		GetWindowThreadProcessId(hWnd, &pid);
+		wsprintfW(pid_info, _T("&PID: %lu"), pid);
+		InsertMenu(hMenuSystem, SC_CLOSE, MF_BYCOMMAND | MF_STRING, MT_MENU_PIDINFO, pid_info);
+	}
+
 	if (!IsMenuItem(hMenuSystem, MT_MENU_SEPARATOR))
 	{
 		InsertMenu(hMenuSystem, SC_CLOSE, MF_BYCOMMAND | MF_SEPARATOR, MT_MENU_SEPARATOR, NULL);
@@ -83,6 +96,11 @@ BOOL MenuTools::Uninstall(HWND hWnd)
 	{
 		bSuccess = FALSE;
 	}
+
+	if (!DeleteMenu(hMenuSystem, MT_MENU_PIDINFO, MF_BYCOMMAND)) {
+		bSuccess = FALSE;
+	}
+
 	if (!DeleteMenu(hMenuSystem, MT_MENU_SEPARATOR, MF_BYCOMMAND))
 	{
 		bSuccess = FALSE;
@@ -357,6 +375,11 @@ BOOL MenuTools::WndProc(HWND hWnd, WPARAM wParam, LPARAM lParam)
 			}
 		}
 
+		return TRUE;
+	}
+
+		// PID
+	case MT_MENU_PIDINFO: {
 		return TRUE;
 	}
 	}
